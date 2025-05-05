@@ -96,6 +96,9 @@ class LogTransformation(fm.InvertibleModule):
         self.alpha_logit = alpha_logit
 
     def forward(self, x, c=None, rev=False, jac=True):
+        #print("OUT OF LOG TRANSFORM")
+        #torch.save(x, "in_logtrans_x.pt")
+        #torch.save(c, "in_logtrans_c.pt")
         x, = x
         if rev:
             z = torch.exp(x) - self.alpha
@@ -111,6 +114,9 @@ class LogTransformation(fm.InvertibleModule):
 
             #z = torch.cat((z1,z3,z2), dim=1)
             jac = - torch.sum( z, dim=1)
+        #print("OUT OF LOG TRANSFORM")
+        #torch.save(z, "in_logtrans_x.pt")
+        #torch.save(torch.tensor([0.], device=x.device), "out_logtrans_c.pt")
         return (z, ), torch.tensor([0.], device=x.device) # jac
 
     def output_dims(self, input_dims):
@@ -205,6 +211,9 @@ class CINN(nn.Module):
             c_norm = c
         if self.pre_subnet:
             c_norm = self.pre_subnet(c_norm)
+        #print("IN GLOBAL FORWARD")
+        #torch.save(x, "in_globalforw_x.pt")
+        #torch.save(c_norm, "in_globalforw_c.pt")
         return self.model.forward(x, c_norm, rev=rev, jac=jac)
 
     def get_layer_class(self, lay_params):
@@ -449,6 +458,9 @@ class CINN(nn.Module):
             Returns:
             tensor: Log-likelihoods
         """
+        #print("IN LOG PROB")
+        #torch.save(x, "in_logprob_x.pt")
+        #torch.save(c, "in_logprob_c.pt")
         z, log_jac_det = self.forward(x, c, rev=False)
         log_prob = - 0.5*torch.sum(z**2, 1) + log_jac_det - z.shape[1]/2 * math.log(2*math.pi)
         return log_prob

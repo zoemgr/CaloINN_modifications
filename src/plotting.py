@@ -17,7 +17,11 @@ from caloch_eval.evaluate_plotting_helper import *
 
 plt.rcParams['font.family'] = 'Times New Roman'
 plt.rcParams['mathtext.default'] = 'rm'
-plt.rcParams['text.usetex'] = True
+import shutil
+iftex = True if shutil.which('latex') else False
+plt.rcParams['text.usetex'] = iftex
+iftex = True if shutil.which('latex') else False
+plt.rc("text", usetex=iftex)
 
 labelfont = FontProperties()
 labelfont.set_family('serif')

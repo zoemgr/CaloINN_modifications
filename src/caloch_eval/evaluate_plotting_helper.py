@@ -25,7 +25,11 @@ labels = ["INN", "VAE+INN"]
 plt.rc("font", family="serif", size=20)
 plt.rc("axes", titlesize="medium")
 plt.rc("text.latex", preamble=r"\usepackage{amsmath}")
-plt.rc("text", usetex=True)
+#plt.rc("text", usetex=True)
+import shutil
+iftex = True if shutil.which('latex') else False
+plt.rcParams['text.usetex'] = iftex
+plt.rc("text", usetex=iftex)
  
 def plot_layer_comparison(hlf_class, data, reference_class, reference_data, arg, show=False):
     """ plots showers of of data and reference next to each other, for comparison """
@@ -85,7 +89,7 @@ def plot_Etot_Einc_discrete(hlf_class, reference_class, arg, p_label):
             energy_label = 'E = {:.1f} TeV'.format(energy/1e6)
         ax.text(0.95, 0.95, energy_label, ha='right', va='top',
                 transform=ax.transAxes)
-        ax.set_xlabel(r'$E_{\text{tot}} / E_{\text{inc}}$')
+        ax.set_xlabel(r'$E_{\mathrm{tot}} / E_{\mathrm{inc}}$')
         ax.xaxis.set_label_coords(1., -0.15)
         ax.set_ylabel('counts')
         ax.yaxis.set_ticklabels([])
@@ -143,9 +147,9 @@ def plot_Etot_Einc(list_hlfs, reference_class, arg, p_label):
     ax[1].axhline(0.7, c='k', ls='--', lw=0.5)
     ax[1].axhline(1.3, c='k', ls='--', lw=0.5)
     
-    ax[1].set_xlabel(r'$E_{\text{tot}} / E_{\text{inc}}$')
+    ax[1].set_xlabel(r'$E_{\mathrm{tot}} / E_{\mathrm{inc}}$')
     ax[0].set_ylabel(r'a.u.')
-    ax[1].set_ylabel(r'$\frac{\text{Model}}{\text{GEANT}}$')
+    ax[1].set_ylabel(r'$\frac{\mathrm{Model}}{\mathrm{GEANT}}$')
     ax[0].legend(loc='best', frameon=False, title=p_label, handlelength=1.5, fontsize=15, title_fontsize=15)
     fig.tight_layout(pad=0.0, h_pad=0.0, w_pad=0.0, rect=(0.01, 0.01, 0.98, 0.98))
     if arg.mode in ['all', 'hist-p', 'hist']:
@@ -219,7 +223,7 @@ def plot_E_layers(list_classes, reference_class, arg, p_label, energy=None):
      
             #ax[0].set_title("Energy deposited in layer {}".format(key))
             ax[0].set_ylabel(r'a.u.')
-            ax[1].set_ylabel(r'$\frac{\text{Model}}{\text{GEANT}}$')
+            ax[1].set_ylabel(r'$\frac{\mathrm{Model}}{\mathrm{GEANT}}$')
             ax[1].set_xlabel(f'$E_{{{key}}}$ [MeV]')
             ax[0].set_yscale('log'), ax[0].set_xscale('log')
             ax[1].set_xscale('log')
@@ -294,7 +298,7 @@ def plot_ECEtas(list_hlfs, reference_class, arg, p_label, energy=None):
             ax[1].set_xlabel(f'$\\langle\\eta\\rangle_{{{key}}}$ [mm]')
             ax[0].set_xlim(*lim)
             ax[0].set_yscale('log')
-            ax[1].set_ylabel(r'$\frac{\text{Model}}{\text{GEANT}}$')
+            ax[1].set_ylabel(r'$\frac{\mathrm{Model}}{\mathrm{GEANT}}$')
             ax[0].text(0.02, 0.92, energy, fontsize=15, transform=ax[0].transAxes)
             ax[0].legend(loc='best', frameon=False, title=p_label, handlelength=1.5, title_fontsize=15, fontsize=15)
             fig.tight_layout(pad=0.0, w_pad=0.0, h_pad=0.0, rect=(0.01, 0.01, 0.98, 0.98))
@@ -366,7 +370,7 @@ def plot_ECPhis(list_hlfs, reference_class, arg, p_label, energy=None):
             ax[1].set_xlabel(f"$\\langle\\phi\\rangle_{{{key}}}$ [mm]")
             ax[0].set_xlim(*lim)
             ax[0].set_yscale('log')
-            ax[1].set_ylabel(r'$\frac{\text{Model}}{\text{GEANT}}$')
+            ax[1].set_ylabel(r'$\frac{\mathrm{Model}}{\mathrm{GEANT}}$')
             ax[0].text(0.02, 0.92, energy, fontsize=15, transform=ax[0].transAxes)
             ax[0].legend(loc='best', frameon=False, title=p_label, handlelength=1.5, title_fontsize=15, fontsize=15)
             fig.tight_layout(pad=0.0, w_pad=0.0, h_pad=0.0, rect=(0.01, 0.01, 0.98, 0.98))
@@ -440,7 +444,7 @@ def plot_ECWidthEtas(list_hlfs, reference_class, arg, p_label, energy=None):
             #ax[0].set_title(r"Width of Center of Energy in $\Delta\eta$ in layer {}".format(key))
             ax[0].set_xlim(*lim)
             ax[0].set_yscale('log')
-            ax[1].set_ylabel(r'$\frac{\text{Model}}{\text{GEANT}}$')
+            ax[1].set_ylabel(r'$\frac{\mathrm{Model}}{\mathrm{GEANT}}$')
             ax[0].text(0.52, 0.92, energy, fontsize=15, transform=ax[0].transAxes)
             ax[0].legend(loc='lower left', frameon=False, title=p_label, handlelength=1.5, fontsize=15, title_fontsize=15)
             fig.tight_layout(pad=0.0, w_pad=0.0, h_pad=0.0, rect=(0.01, 0.01, 0.98, 0.98))
@@ -514,7 +518,7 @@ def plot_ECWidthPhis(list_hlfs, reference_class, arg, p_label, energy=None):
             #ax[0].set_title(r"Width of Center of Energy in $\Delta\phi$ in layer {}".format(key))
             ax[0].set_xlim(*lim)
             ax[0].set_yscale('log')
-            ax[1].set_ylabel(r'$\frac{\text{Model}}{\text{GEANT}}$')
+            ax[1].set_ylabel(r'$\frac{\mathrm{Model}}{\mathrm{GEANT}}$')
             ax[0].text(0.52, 0.92, energy, fontsize=15, transform=ax[0].transAxes)
             ax[0].legend(loc='lower left', frameon=False, title=p_label, handlelength=1.5, fontsize=15, title_fontsize=15)
             fig.tight_layout(pad=0.0, w_pad=0.0, h_pad=0.0, rect=(0.01, 0.01, 0.98, 0.98))
@@ -574,7 +578,7 @@ def plot_sparsity(list_hlfs, reference_class, arg, p_label, energy=None):
             ax[1].axhline(0.7, c='k', ls='--', lw=0.5)
             ax[1].axhline(1.3, c='k', ls='--', lw=0.5)
             
-            ax[1].set_ylabel(r'$\frac{\text{Model}}{\text{GEANT}}$')
+            ax[1].set_ylabel(r'$\frac{\mathrm{Model}}{\mathrm{GEANT}}$')
             ax[0].set_ylabel(r'a.u.')
             ax[1].set_xlabel(f"$\\lambda_{{{key}}}$")
             #plt.yscale('log')
@@ -736,11 +740,11 @@ def plot_atlas_style(hlfs, reference_class, arg, p_label):
             error_n = counts_n_norm/np.sqrt(counts_n)
             
             if i in [0, 1, 2]:
-                energy_label = '$E_\\text{{inc}}$={:.0f} MeV'.format(energy)
+                energy_label = '$E_\\mathrm{{inc}}$={:.0f} MeV'.format(energy)
             elif i in np.arange(3, 12):
-                energy_label = '$E_\\text{{inc}}$={:.1f} GeV'.format(energy/1e3)
+                energy_label = '$E_\\mathrm{{inc}}$={:.1f} GeV'.format(energy/1e3)
             else:
-                energy_label = '$E_\\text{{inc}}$={:.1f} TeV'.format(energy/1e6)
+                energy_label = '$E_\\mathrm{{inc}}$={:.1f} TeV'.format(energy/1e6)
 
 
             ax[even_pair].step(bins, dup(counts_n_norm), color=colors[n],
@@ -769,19 +773,19 @@ def plot_atlas_style(hlfs, reference_class, arg, p_label):
         ax[odd_pair].set_yticks([])
 
         if odd_pair[1]==0:
-            ax[odd_pair].set_ylabel(r'$\frac{\text{Model}}{\text{GEANT}}$')
+            ax[odd_pair].set_ylabel(r'$\frac{\mathrm{Model}}{\mathrm{GEANT}}$')
             ax[even_pair].set_ylabel('a.u.')
             ax[odd_pair].set_yticks((0.7, 1.3))
 
         if odd_pair[0]==7:
-            ax[odd_pair].set_xlabel(f'$E_{{\\text{{tot}}}} / E_{{\\text{{inc}}}}$')
+            ax[odd_pair].set_xlabel(f'$E_{{\\mathrm{{tot}}}} / E_{{\\mathrm{{inc}}}}$')
             
         if i in [0, 1, 2]:
-            energy_label = '$E_\\text{{inc}}$={:.0f} MeV'.format(energy)
+            energy_label = '$E_\\mathrm{{inc}}$={:.0f} MeV'.format(energy)
         elif i in np.arange(3, 12):
-            energy_label = '$E_\\text{{inc}}$={:.1f} GeV'.format(energy/1e3)
+            energy_label = '$E_\\mathrm{{inc}}$={:.1f} GeV'.format(energy/1e3)
         else:
-            energy_label = '$E_\\text{{inc}}$={:.1f} TeV'.format(energy/1e6)
+            energy_label = '$E_\\mathrm{{inc}}$={:.1f} TeV'.format(energy/1e6)
 
         ax[even_pair].text(0.03, 0.9, energy_label, fontsize=16, transform=ax[even_pair].transAxes)
 

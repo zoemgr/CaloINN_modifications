@@ -104,7 +104,7 @@ class Trainer:
         if self.model.bayesian:
             self.model.enable_map()
 
-        self.latent_samples(0)
+        #self.latent_samples(0)
         N = len(self.train_loader.data)
 
         self.epoch = 0
@@ -127,8 +127,21 @@ class Trainer:
             max_grad = 0.0
 
             self.model.train()
+            it = 0
             for x, c in self.train_loader:
                 self.optim.zero_grad()
+                if it==0:
+                    #x = torch.rand(x.shape).to(torch.float32).to(self.device)
+                    #c = torch.rand(c.shape).to(torch.float32).to(self.device)
+                    torch.save(x, "x.pt")
+                    torch.save(c, "c.pt")
+                    torch.save(- torch.mean(self.model.log_prob(x,c)), "loss.pt")
+                    torch.save(x, "x_.pt")
+                    torch.save(c, "c_.pt")
+                    torch.save((self.model.model.state_dict()), "model_rand.pt")
+                    it = it + 1
+                #v=0/0
+                
                 inn_loss = - torch.mean(self.model.log_prob(x,c))
                 if self.model.bayesian:
                     kl_loss = self.model.get_kl() / N
@@ -155,7 +168,7 @@ class Trainer:
 
                 for param in self.model.params_trainable:
                     max_grad = max(max_grad, torch.max(torch.abs(param.grad)).item())
-
+    
             self.model.eval()
             with torch.no_grad():
                 for x, c in self.test_loader:
@@ -291,7 +304,9 @@ class Trainer:
                 self.optim,
                 params.get("max_lr", params["lr"]*10),
                 epochs = params.get("cycle_epochs") or params["n_epochs"],
+                #epochs = params["n_epochs"] or params.get("cycle_epochs"),
                 steps_per_epoch=steps_per_epoch,
+                final_div_factor=1e1
                 )
         elif self.lr_sched_mode == "cycle_lr":
             self.scheduler = torch.optim.lr_scheduler.CyclicLR(
@@ -320,9 +335,22 @@ class Trainer:
 
     def load(self, epoch=""):
         """ Load the model, its optimizer, losses, learning rates and the epoch """
-        name = self.doc.get_file(f"model{epoch}.pt")
+        #print("IN LOAD")
+        print(f"model{epoch}.pt")
+        name = self.doc.get_file(f"model{epoch}.pht")
         state_dicts = torch.load(name, map_location=self.device)
-        self.model.load_state_dict(state_dicts["net"])
+        #print(state_dicts.keys())
+        #print(state_dicts["model"].keys())
+
+        state_dict_model = state_dicts["model"]
+
+        # Update keys in place
+        for key in list(state_dict_model.keys()):  # Use list() to avoid RuntimeError during modification
+            if key.startswith("module."):
+                state_dict_model[key.replace("module.", "")] = state_dict_model.pop(key)
+        self.model.load_state_dict(state_dict_model)
+
+        #self.model.load_state_dict(state_dicts["model"]["module"])
 
         #self.losses_test = state_dicts.get("losses", {})
         #self.learning_rates = state_dicts.get("learning_rates", [])
@@ -422,7 +450,7 @@ class Trainer:
         Run the default evaluation script for a single saved sample
         It runs the full CaloChallenge evaluation pipeline
         """
-        evaluate.main(f"-i {self.doc.basedir}/{sample_name} -r {self.params['val_data_path']} -m all -d {self.params['eval_dataset']} --output_dir {self.doc.basedir}/eval/{eval_name}/ --cut 1.515e-3".split())
+        evaluate.main(f"-i {self.doc.basedir}/{sample_name} -r {self.params['val_data_path']} -m all -d {self.params['eval_dataset']} --output_dir {self.doc.basedir}/eval/{eval_name}/ --cut 0. ".split())#
 
     def plot_uncertaintys(self, plot_params, num_samples=100000, num_rand=30, batch_size = 10000):
         """

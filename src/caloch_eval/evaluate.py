@@ -61,6 +61,8 @@ plt.rc("font", family="serif", size=20)
 plt.rc("axes", titlesize="medium")
 plt.rc("text.latex", preamble=r"\usepackage{amsmath}")
 plt.rc("text", usetex=True)
+iftex = True if shutil.which('latex') else False
+plt.rc("text", usetex=iftex)
  
 
 ########## Parser Setup ##########
@@ -174,22 +176,47 @@ def prepare_low_data_for_classifier(hdf5_file, hlf_class, label, cut=0.0, normed
         E_norm_rep = np.concatenate(E_norm_rep, axis=1)
         E_norm = np.concatenate(E_norm, axis=1)
     voxel, E_inc = extract_shower_and_energy(hdf5_file, label, single_energy=single_energy)
+    print("IN prepare_low_data_for_classifier AFTER extract_shower_and_energy")
 
     np.nan_to_num(voxel, copy=False, nan=0.0, posinf=0.0, neginf=0.0)
+    print("1")
     
     voxel[voxel<cut] = 0.0
+    print("2")
     if normed:
+        print("3")
         voxel = voxel / (E_norm_rep+1e-16)
         ret = np.concatenate([np.log10(E_inc), voxel, np.log10(E_norm+1e-8),
                               label*np.ones_like(E_inc)], axis=1)
+        print("3")
     else:
-        voxel = voxel / E_inc
-        ret = np.concatenate([np.log10(E_inc), voxel, label*np.ones_like(E_inc)], axis=1)
+        print("4")
+        print(E_inc.shape, voxel.shape)
+        if np.any(E_inc == 0):  # Check if any value is 0
+            print("Array contains zero.")
+        if np.any(E_inc < 0):  # Check if any value is 0
+            print("Array contains negative.")
+
+        if np.any(E_inc == None):  # Check if any value is None
+            print("Array contains None.")
+        print(voxel.dtype, E_inc.dtype)
+        print(type(voxel), type(E_inc))
+        if np.any(np.isnan(E_inc)) or np.any(np.isinf(E_inc)):
+            print("E_inc contains NaN or Inf.")
+
+        print("voxel / E_inc")
+        #print(voxel / E_inc)
+        print(np.log10(E_inc).shape)
+        print(np.log10(E_inc).shape, voxel.shape, (label*np.ones_like(E_inc)).shape)
+        voxel /= E_inc
+        ret = np.concatenate([np.log10(E_inc).astype(np.float32), voxel.astype(np.float32), label*np.ones_like(E_inc).astype(np.float32)], axis=1)
+        print("4")
     return ret
 
 def prepare_high_data_for_classifier(hdf5_file, hlf_class, label, cut=0.0, single_energy=None):
     """ takes hdf5_file, extracts high-level features, appends label, returns array """
     voxel, E_inc = extract_shower_and_energy(hdf5_file, label, single_energy=single_energy)
+    print("IN prepare_high_data_for_classifier AFTER extract_shower_and_energy")
     voxel[voxel<cut] = 0.0
     E_tot = hlf_class.GetEtot()
     E_layer = []
@@ -448,13 +475,13 @@ def plot_histograms(hlfs, reference_class, arg, p_label, energy=None):
     if energy is None:
         energy_label = ''
     elif energy[-1] in 2**np.arange(8, 10):
-        energy_label = '$E_\\text{{inc}}$={:.0f} MeV'.format(energy[-1])
+        energy_label = '$E_\\mathrm{{inc}}$={:.0f} MeV'.format(energy[-1])
     elif energy[-1] in 2**np.arange(11, 20):
-        energy_label = '$E_\\text{{inc}}$={:.1f} GeV'.format(energy[-1]/1e3)
+        energy_label = '$E_\\mathrm{{inc}}$={:.1f} GeV'.format(energy[-1]/1e3)
     elif energy[-1] in 2**np.arange(21, 25):
-        energy_label = '$E_\\text{{inc}}$={:.1f} TeV'.format(energy[-1]/1e6)
+        energy_label = '$E_\\mathrm{{inc}}$={:.1f} TeV'.format(energy[-1]/1e6)
     elif len(energy) == 2:
-        energy_label = '$E_\\text{{inc}} \\in$[$10^{{{:d}}}$, $10^{{{:d}}}$] GeV'.format(int(np.log10(energy[0]/1e3)), int(np.log10(energy[1]/1e3)))
+        energy_label = '$E_\\mathrm{{inc}} \\in$[$10^{{{:d}}}$, $10^{{{:d}}}$] GeV'.format(int(np.log10(energy[0]/1e3)), int(np.log10(energy[1]/1e3)))
     else:
         energy_label=''
 
@@ -505,6 +532,7 @@ def main(raw_args=None):
                                     args.dataset.replace('-', '_')))
                     )
         shower, energy = extract_shower_and_energy(list_files[n], which='input', single_energy=args.energy)
+        print("IN MAIN AFTER extract_shower_and_energy")
         showers.append(shower)
         energies.append(energy)
 
@@ -520,8 +548,10 @@ def main(raw_args=None):
         np.nan_to_num(showers[n], copy=False, nan=0.0, neginf=0.0, posinf=0.0)
      
         # Using a cut everywhere
-        print("Using Everywhere a cut of {}".format(args.cut))
-        showers[n][showers[n]<args.cut] = 0.0
+        #print("Using Everywhere a cut of {}".format(args.cut))
+        #showers[n][showers[n]<args.cut] = 0.0 1.515e-3
+        #showers[n][showers[n]<0.2e-3] = 0.0
+        #print(np.sum(showers[n] < 0.2e-3), " didn't pass cut")
 
     # get reference folder and name of file
     args.source_dir, args.reference_file_name = os.path.split(args.reference_file)
@@ -533,6 +563,7 @@ def main(raw_args=None):
 
     reference_shower, reference_energy = extract_shower_and_energy(reference_file,
                                                                    which='reference', single_energy=args.energy)
+    print("IN MAIN AFTER extract_shower_and_energy")
     reference_shower[reference_shower<args.cut] = 0.0
 
     #if os.path.exists(os.path.join(args.source_dir, args.reference_file_name + '.pkl')):
@@ -552,6 +583,7 @@ def main(raw_args=None):
 
     # evaluations:
     if args.mode in ['all', 'no-cls', 'avg']:
+        pass
         print("Plotting average shower next to reference...")
         plot_layer_comparison(hlfs[0], showers[0].mean(axis=0, keepdims=True),
                               reference_hlf, reference_shower.mean(axis=0, keepdims=True), args)
@@ -591,6 +623,7 @@ def main(raw_args=None):
 
 
     if args.mode in ['all', 'no-cls', 'avg-E']:
+        pass
         print("Plotting average showers for different energies ...")
         if '1' in args.dataset:
             target_energies = 2**np.linspace(8, 23, 16)
@@ -696,7 +729,7 @@ def main(raw_args=None):
                 source_array = prepare_high_data_for_classifier(list_files[n], hlfs[n], 0., cut=cut, single_energy=args.energy)
                 reference_array = prepare_high_data_for_classifier(reference_file, reference_hlf, 1., cut=cut,
                                                                     single_energy=args.energy)
-
+            print("before split")
             train_data, test_data, val_data = ttv_split(source_array, reference_array)
 
             # set up device
@@ -717,7 +750,17 @@ def main(raw_args=None):
 
             print("{} has {} parameters".format(args.mode, int(total_parameters)))
 
-            optimizer = torch.optim.Adam(classifier.parameters(), lr=args.cls_lr)
+            optimizer = torch.optim.Adam(
+                classifier.parameters(), 
+                lr=args.cls_lr
+            )
+            
+            #scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            #    optimizer, 
+            #    mode='min',         # Reduce LR when monitored metric (loss) stops decreasing
+            #    factor=0.1,         # Multiply LR by 0.1 when reducing
+            #    patience=10,        # Wait 10 epochs before reducing LR
+            #)
 
             if args.save_mem:
                 train_data = TensorDataset(torch.tensor(train_data, dtype=torch.get_default_dtype()))

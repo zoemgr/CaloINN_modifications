@@ -416,7 +416,7 @@ def save_hlf(hlf, filename):
     print("Saving file with high-level features DONE.")
 
 def get_loaders(filename, xml_filename, particle_type, val_frac, batch_size, 
-                eps=1.e-10, device='cpu', drop_last=False, shuffle=True, 
+                eps=1.e-10, device='cpu', drop_last=False, shuffle=False, 
                 width_noise=0.0, energy=None, u0up_cut=7.0, u0low_cut=0.0, rew=1.0, dep_cut=0.0):
     """Creates the dataloaders used to train the VAE model."""
     
@@ -445,7 +445,12 @@ def get_loaders(filename, xml_filename, particle_type, val_frac, batch_size,
 
     x_val = x[val_index]
     c_val = c[val_index]  
-    
+
+    # x_trn = torch.load("/gpfs/users/maiborodav/itwinai/use-cases/caloinn/train_x.pt")
+    # c_trn = torch.load("/gpfs/users/maiborodav/itwinai/use-cases/caloinn/train_c.pt")
+    # x_val = torch.load("/gpfs/users/maiborodav/itwinai/use-cases/caloinn/validation_x.pt")
+    # c_val = torch.load("/gpfs/users/maiborodav/itwinai/use-cases/caloinn/validation_cond.pt")
+
     # Cast into torch tensors
     x_trn = torch.tensor(x_trn, device=device, dtype=torch.get_default_dtype())
     c_trn = torch.tensor(c_trn, device=device, dtype=torch.get_default_dtype())
@@ -455,6 +460,11 @@ def get_loaders(filename, xml_filename, particle_type, val_frac, batch_size,
     # Call the postprocess func to make sure that it runs through
     #_ = postprocess(x_trn, c_trn, layer_boundaries)
     #_ = postprocess(x_val, c_val, layer_boundaries)
+
+    print("IN GET LOADERS BEFORE DATALOADER")
+    print(x_trn[0][:5])
+    print(c_trn[0][:5])
+
     
     # Create the dataloaders
     trn_loader = MyDataLoader(x_trn, c_trn, batch_size, drop_last, shuffle, width_noise)

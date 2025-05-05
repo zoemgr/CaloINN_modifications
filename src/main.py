@@ -4,6 +4,9 @@ import os
 
 import yaml
 import torch
+import numpy as np
+
+import random
 
 from documenter import Documenter
 from trainer import Trainer
@@ -24,6 +27,17 @@ def main():
     parser.add_argument('-its', '--model_name', default='_last',
         help='name of the model used to generate the new sample')
     args = parser.parse_args()
+
+    def set_seed(seed=42):
+        random.seed(seed)  # Python's built-in random module
+        np.random.seed(seed)  # NumPy
+        torch.manual_seed(seed)  # PyTorch (CPU)
+        torch.cuda.manual_seed(seed)  # PyTorch (Single GPU)
+        torch.cuda.manual_seed_all(seed)  # PyTorch (Multi-GPU)
+        torch.backends.cudnn.deterministic = True  # Ensures deterministic CNN behavior
+        torch.backends.cudnn.benchmark = False  # Prevents dynamic optimization
+
+    set_seed(42)
 
     with open(args.param_file) as f:
         params = yaml.load(f, Loader=yaml.FullLoader)

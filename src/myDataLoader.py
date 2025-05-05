@@ -43,8 +43,17 @@ class MyDataLoader:
             self.max_batch = math.ceil(len(self.data) / self.batch_size)
 
     def add_noise(self, input: torch.Tensor) -> torch.Tensor:
-        noise = self.noise_distribution.sample(input.shape)*self.width_noise
-        return input + noise.reshape(input.shape)
+        
+        for i in range(input.shape[0]):
+            torch.manual_seed(42)
+            #print("input")
+            #print(input[0][:10])
+            noise = self.noise_distribution.sample(input[i].shape)*self.width_noise
+            #print("noise")
+            #print(noise[:10])
+            input[i] += noise.reshape(input[i].shape)
+            #v=0/0
+        return input # + noise.reshape(input.shape)
     
     def fix_noise(self):
         if self.fixed_noise:
@@ -78,6 +87,7 @@ class MyDataLoader:
         idx = self.index[first:last]
         self.batch += 1
         if not self.fixed_noise:
+            print("IN DATALOADER ADDING NOISE ", self.batch)
             data = torch.clone(self.add_noise(self.data[idx]))
         else:
             data = torch.clone(self.data[idx])
