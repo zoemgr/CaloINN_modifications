@@ -425,7 +425,7 @@ class RationalQuadraticSplineBlock(fm.InvertibleModule):
             #np.random.seed(42)
             #for i, j in enumerate(np.random.permutation(channels)):
             random_indices = np.arange(channels)  
-            np.random.RandomState(42).shuffle(random_indices)  
+            np.random.shuffle(random_indices)  #.RandomState(42)
             for i, j in enumerate(random_indices): 
                 w[i, j] = 1.
             #torch.save(w, "w.pt")

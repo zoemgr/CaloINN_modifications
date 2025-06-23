@@ -10,7 +10,7 @@ import caloch_eval.calc_obs
 plt.rcParams['font.family'] = 'Times New Roman'
 plt.rcParams['mathtext.default'] = 'rm'
 import shutil
-iftex = True if shutil.which('latex') else False
+iftex = False
 plt.rcParams['text.usetex'] = iftex
 plt.rc("text", usetex=iftex)
 #plt.rcParams['text.latex.preamble'] = r'\usepackage{amsmath}'

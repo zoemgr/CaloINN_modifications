@@ -52,8 +52,12 @@ from sklearn.calibration import calibration_curve
 from sklearn.isotonic import IsotonicRegression
 
 import caloch_eval.HighLevelFeatures as HLF
-
 from caloch_eval.evaluate_plotting_helper import *
+
+# for evaluation only
+# import HighLevelFeatures as HLF
+# from evaluate_plotting_helper import *
+
 
 torch.set_default_dtype(torch.float64)
 
@@ -61,7 +65,7 @@ plt.rc("font", family="serif", size=20)
 plt.rc("axes", titlesize="medium")
 plt.rc("text.latex", preamble=r"\usepackage{amsmath}")
 plt.rc("text", usetex=True)
-iftex = True if shutil.which('latex') else False
+iftex = False
 plt.rc("text", usetex=iftex)
  
 
@@ -180,6 +184,7 @@ def prepare_low_data_for_classifier(hdf5_file, hlf_class, label, cut=0.0, normed
 
     np.nan_to_num(voxel, copy=False, nan=0.0, posinf=0.0, neginf=0.0)
     print("1")
+
     
     voxel[voxel<cut] = 0.0
     print("2")
@@ -211,6 +216,8 @@ def prepare_low_data_for_classifier(hdf5_file, hlf_class, label, cut=0.0, normed
         voxel /= E_inc
         ret = np.concatenate([np.log10(E_inc).astype(np.float32), voxel.astype(np.float32), label*np.ones_like(E_inc).astype(np.float32)], axis=1)
         print("4")
+
+
     return ret
 
 def prepare_high_data_for_classifier(hdf5_file, hlf_class, label, cut=0.0, single_energy=None):
@@ -527,6 +534,9 @@ def main(raw_args=None):
     energies = []
 
     for n, file in enumerate(list_files):
+        
+        #print('binning_dataset_{}.xml'.format(
+                                    #args.dataset.replace('-', '_')))
         hlfs.append(HLF.HighLevelFeatures(particle,
                                 filename='binning_dataset_{}.xml'.format(
                                     args.dataset.replace('-', '_')))
@@ -535,6 +545,7 @@ def main(raw_args=None):
         print("IN MAIN AFTER extract_shower_and_energy")
         showers.append(shower)
         energies.append(energy)
+
 
         #Checking for negative values, nans and infinities
         print(f"Checking input file {n}")
@@ -564,6 +575,7 @@ def main(raw_args=None):
     reference_shower, reference_energy = extract_shower_and_energy(reference_file,
                                                                    which='reference', single_energy=args.energy)
     print("IN MAIN AFTER extract_shower_and_energy")
+#    print((reference_shower == None).all() )
     reference_shower[reference_shower<args.cut] = 0.0
 
     #if os.path.exists(os.path.join(args.source_dir, args.reference_file_name + '.pkl')):
@@ -732,7 +744,23 @@ def main(raw_args=None):
             print("before split")
             train_data, test_data, val_data = ttv_split(source_array, reference_array)
 
-            # set up device
+            # energy_to_eval = 16384.0
+            # #energy_to_eval=512.0
+            # #energy_to_eval = 1048576.0
+            # #energy_to_eval = 2097152.0
+            # log_einc_target = np.log10(energy_to_eval) 
+            # tol = 1e-4 
+
+            # val_data= val_data[np.abs(val_data[:, 0] - log_einc_target) < tol]
+            # test_data= test_data[np.abs(test_data[:, 0] - log_einc_target) < tol]
+            # print("------------")
+            # print(f"Le nombre d'événements à {energy_to_eval} dans val: {len(val_data)}")
+            # print(f"Le nombre d'événements à {energy_to_eval} dans test: {len(test_data)}")
+            # print("------------")
+
+
+
+            #  set up device
             args.device = torch.device('cuda:'+str(args.which_cuda) \
                                        if torch.cuda.is_available() and not args.no_cuda else 'cpu')
             print("Using {}".format(args.device))
@@ -794,3 +822,4 @@ def main(raw_args=None):
 
 if __name__ == '__main__':
     main()
+

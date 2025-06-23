@@ -1,18 +1,18 @@
-run_name: pions_ep50_testrepro_42everywhere
-p_type: piplus
-dtype: float32
+run_name: pionswonoise_50epochs        # nom du folder qui va save les resultats
+p_type: piplus               # particle type, type de dataset , pion, e...
+dtype: float32               # precision numérique qu'on veut avoir (32 bits)
 # Data
-data_path: /gpfs/users/maiborodav/itwinai/use-cases/caloinn/calochallenge_data/dataset_1_pions_1_train.hdf5 #/gpfs/users/maiborodav/CaloINN/data/ds1-pions/caloINN_sample.hdf5
-val_data_path: /gpfs/users/maiborodav/itwinai/use-cases/caloinn/calochallenge_data/dataset_1_pions_2_test.hdf5 #/gpfs/users/maiborodav/CaloINN/data/ds1-pions/caloINN_sample.hdf5
-xml_path: /gpfs/users/maiborodav/CaloINN/binning_dataset_1_pions.xml
-single_energy: null
+data_path: /pbs/home/z/zriche/CaloINN/data/dataset_1_pions_1.hdf5
+val_data_path: /pbs/home/z/zriche/CaloINN/data/dataset_1_pions_2.hdf5        #testing set
+xml_path: /pbs/home/z/zriche/CaloINN/binning_dataset_1_pions.xml        #binning file
+single_energy: null         # si on veut sélectionner une énergie incidente en particulier
 width_noise: 5.0e-6
 custom_noise: False
 fixed_noise: False
-noise: True
+noise: False  ###True
 val_frac: 0.01
-eps: 1.0e-10
-xml_ptype: "pion"
+eps: 1.0e-10             # évite les divisions par 0, ajt des petites valeurs au dénominateur
+xml_ptype: "pion"        # préciser la particule
 eval_dataset: "1-pions"
 u0up_cut: 3.5
 u0low_cut: 0.0
@@ -20,15 +20,15 @@ pt_rew: 1.0
 dep_cut: 600
 
 # Training
-lr: 1.e-5
-max_lr: 1.e-4
-batch_size: 512
+lr: 1.e-5                   # c'est le lr DE DÉPART
+max_lr: 1.e-4               # c'est la valeur max du lr pendant un cycle
+batch_size: 512           
 
 lr_scheduler: one_cycle_lr
 
-weight_decay: 0.01
-betas: [0.9, 0.999]
-n_epochs: 1
+weight_decay: 0.01         # régularisation, pénalise les grands poids pour éviter overfitting
+betas: [0.9, 0.999]        # param internes de Adam, controlent la mémoire de l'optimiseur
+n_epochs: 50
 cycle_epochs: 37
 save_interval: 50
 

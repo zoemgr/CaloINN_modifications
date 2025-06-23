@@ -15,69 +15,78 @@ class Subnet(nn.Module):
 
     def __init__(self, num_layers, size_in, size_out, internal_size=None, dropout=0.0,
                  layer_class=nn.Linear, layer_args={}, layer_norm=None, layer_act="nn.ReLU"):
+        
+            # layer_class : liste de classes de couches à utiliser
+            # layer_args : argumts pour chaque couche (ex : biais T/F ...)
+            # layer_norm : si normalisation souaitée
+            # layer_act : fonxtion d'acrivation sous forme de str
+            # dropout : désactive aléatoirement certains neurones (contre overfitting)
         """
-            Initializes subnet class.
+            Initializes subnet class. 
 
             Parameters:
             size_in: input size of the subnet
             size: output size of the subnet
             internal_size: hidden size of the subnet. If None, set to 2*size
-            dropout: dropout chance of the subnet
+            dropout: dropout chance of the subnet   
         """
         super().__init__()
-        if internal_size is None:
+        if internal_size is None:      
             internal_size = size_out * 2
         if num_layers < 1:
             raise(ValueError("Subnet size has to be 1 or greater"))
         self.layer_list = []
-        for n in range(num_layers - 1):
-            if isinstance(internal_size, list):
+        for n in range(num_layers - 1):  # pour chaque couche sauf la dernière
+            if isinstance(internal_size, list):  #on permet un internal_size fixe (int) ou une liste personnalisée
                 input_dim, output_dim = internal_size[n], internal_size[n+1]
             else:
                 input_dim, output_dim = internal_size, internal_size
-            if n == 0:
+            if n == 0:        # la première couche doit correspondre à size_in
                 input_dim = size_in
 
-            self.layer_list.append(layer_class[n](input_dim, output_dim, **(layer_args[n])))
+            self.layer_list.append(layer_class[n](input_dim, output_dim, **(layer_args[n])))  
+            #ajout d'une couche personnalisée
 
-            if dropout > 0:
+            if dropout > 0:    # dropout eventuel entre les couches
                 self.layer_list.append(nn.Dropout(p=dropout))
             
             if layer_norm is not None:
                 self.layer_list.append(eval(layer_norm)(output_dim))
 
-            self.layer_list.append(eval(layer_act)())
+            self.layer_list.append(eval(layer_act)())  # ajt la fct d'activation
         
         # separating last linear/VBL layer
         #output_dim = size_out
         self.layer_list.append(layer_class[-1](output_dim, size_out, **(layer_args[-1]) ))
+        # ajt la dernière couche
 
-        self.layers = nn.Sequential(*self.layer_list)
+        self.layers = nn.Sequential(*self.layer_list) # on regrp ttes les couches en 1 seul bloc
 
         final_layer_name = str(len(self.layers) - 1)
-        for name, param in self.layers.named_parameters():
-            if name[0] == final_layer_name and "logsig2_w" not in name:
-                param.data.zero_()
+        for name, param in self.layers.named_parameters(): 
 
-    def forward(self, x):
+            if name[0] == final_layer_name and "logsig2_w" not in name:
+                param.data.zero_()    # met à 0 les poids de la dernière couche
+
+    def forward(self, x):  # propagation directe de l'entrée à travers ttes les couches
         return self.layers(x)
 
-class MixedTransformation(fm.InvertibleModule):
+class MixedTransformation(fm.InvertibleModule):    # sert à appliquer une transformation non linéaire mixte
     def __init__(self, dims_in, dims_c=None, alpha = 0., alpha_logit=0.):
-        super().__init__(dims_in, dims_c)
-        self.alpha = alpha
+        super().__init__(dims_in, dims_c)  #dims_in,c dimension d'entrée et conditionnelles (std dans FrEIA)
+        self.alpha = alpha    # offset de sécurité (logx+alpha) pour éviter d'avoir des log (0)
         self.alpha_logit = alpha_logit
 
     def forward(self, x, c=None, rev=False, jac=True):
-        x, = x
-        if rev:
-            z1 = torch.exp(x[:,:369]) - self.alpha
-            z2 = torch.sigmoid(x[:, -4:])
+        x, = x    # on extrait x qui est un tuple de tenseur
+        if rev:  # indique la direction de la transformation  (latent vers données)
+            z1 = torch.exp(x[:,:369]) - self.alpha   # transfo exp inversée du log 
+            z2 = torch.sigmoid(x[:, -4:])      # applique un sigmoid 
             z2 = (z2 - self.alpha_logit)/(1-2*self.alpha_logit)
 
             z = torch.cat((z1,z2), dim=1)
             jac = torch.sum( x, dim=1)
-        else:
+        else:       # données vers latent
             z1 = torch.log(x[:,:369] + self.alpha)
             z2 = torch.logit(x[:, -4:]*(1-2*self.alpha_logit) + self.alpha_logit)
 
@@ -89,7 +98,7 @@ class MixedTransformation(fm.InvertibleModule):
         return input_dims
 
 
-class LogTransformation(fm.InvertibleModule):
+class LogTransformation(fm.InvertibleModule):    # transfo logarithmique inversible
     def __init__(self, dims_in, dims_c=None, alpha = 0., alpha_logit=0.):
         super().__init__(dims_in, dims_c)
         self.alpha = alpha
@@ -100,14 +109,14 @@ class LogTransformation(fm.InvertibleModule):
         #torch.save(x, "in_logtrans_x.pt")
         #torch.save(c, "in_logtrans_c.pt")
         x, = x
-        if rev:
+        if rev:     # transfo directe
             z = torch.exp(x) - self.alpha
             #z2 = torch.exp(x[:, -4:])
             #z3 = x[:, 369].reshape(-1, 1)
 
             #z = torch.cat((z1,z3,z2), dim=1)
             jac = torch.sum( x, dim=1)
-        else:
+        else:      # transfo inverse
             z = torch.log(x + self.alpha)
             #z3 = x[:,369].reshape(-1, 1)
             #z2 = torch.log(x[:, -4:])     #*(1-2*self.alpha_logit) + self.alpha_logit)
@@ -123,7 +132,7 @@ class LogTransformation(fm.InvertibleModule):
         return input_dims
 
 
-class LogitTransformation(fm.InvertibleModule):
+class LogitTransformation(fm.InvertibleModule):     # pour des données dans [0,1] (log)
     def __init__(self, dims_in, dims_c=None, alpha = 0.):
         super().__init__(dims_in, dims_c)
         self.alpha = alpha
@@ -132,15 +141,15 @@ class LogitTransformation(fm.InvertibleModule):
         x, = x
         if not rev:
             x = x*(1-2*self.alpha) + self.alpha
-            z = torch.logit(x)
+            z = torch.logit(x)      # tranfo logit (inverse de sigmoid sur les données entre 0 et 1)
         else:
             if not self.training:
                 x[:,:-3] = self.norm_logit(x[:,:-3])
-            z = torch.sigmoid(x)
+            z = torch.sigmoid(x)    # transfo inverse : sigmoid
             z = (z - self.alpha)/(1-2*self.alpha)
         return (z, ), torch.tensor([0.], device=x.device) # jac
 
-    def norm_logit(self, t: torch.Tensor):
+    def norm_logit(self, t: torch.Tensor):   # nomalisation optionnelle
          f = lambda x: torch.sum(1/(1+torch.exp(-t-x)), dim=1) - 1 - self.alpha*(t.shape[1] - 2)
          f_ = lambda x: torch.sum(torch.exp(-t-x)/(1+torch.exp(-t-x))**2,dim=1)
          c = torch.zeros((t.shape[0], 1), device=t.device)
@@ -152,7 +161,7 @@ class LogitTransformation(fm.InvertibleModule):
         return input_dims
 
 
-class NormTransformation(fm.InvertibleModule):
+class NormTransformation(fm.InvertibleModule):      # normalisation dynamQ conditionnelle (rescale)
     def __init__(self, dims_in, dims_c=None, log_cond=False):
         super().__init__(dims_in, dims_c)
         self.log_cond = log_cond
@@ -219,7 +228,7 @@ class CINN(nn.Module):
     def get_layer_class(self, lay_params):
         lays = []
         for n in range(len(lay_params)):
-            if lay_params[n] == 'vblinear':
+            if lay_params[n] == 'vblinear':    # variational bayesian
                 lays.append(VBLinear)
             if lay_params[n] == 'linear':
                 lays.append(nn.Linear)
@@ -238,7 +247,7 @@ class CINN(nn.Module):
             layer_args.append(n_args)
         return layer_args
 
-    def get_constructor_func(self, params):
+    def get_constructor_func(self, params):    
         """ Returns a function that constructs a subnetwork with the given parameters """
         if "sub_layers" in params:
             layer_class = params["sub_layers"]

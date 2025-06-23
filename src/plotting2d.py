@@ -12,9 +12,9 @@ from calc_obs import *
 plt.rcParams['font.family'] = 'Times New Roman'
 plt.rcParams['mathtext.default'] = 'rm'
 import shutil
-iftex = True if shutil.which('latex') else False
+iftex = False
 plt.rcParams['text.usetex'] = iftex
-iftex = True if shutil.which('latex') else False
+iftex = False
 plt.rc("text", usetex=iftex)
 
 labelfont = FontProperties()

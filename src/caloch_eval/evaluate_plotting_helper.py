@@ -27,7 +27,7 @@ plt.rc("axes", titlesize="medium")
 plt.rc("text.latex", preamble=r"\usepackage{amsmath}")
 #plt.rc("text", usetex=True)
 import shutil
-iftex = True if shutil.which('latex') else False
+iftex = False
 plt.rcParams['text.usetex'] = iftex
 plt.rc("text", usetex=iftex)
  
@@ -112,7 +112,7 @@ def plot_Etot_Einc_discrete(hlf_class, reference_class, arg, p_label):
 def plot_Etot_Einc(list_hlfs, reference_class, arg, p_label):
     """ plots Etot normalized to Einc histogram """
 
-    bins = np.linspace(0.5, 1.5, 31)
+    bins = np.linspace(0.5 , 1.5, 31)
     fig, ax = plt.subplots(2,1, figsize=(5, 4.5), gridspec_kw = {"height_ratios": (4,1), "hspace": 0.0}, sharex = True)
         
     counts_ref, bins = np.histogram(reference_class.GetEtot() / reference_class.Einc.squeeze(), bins=bins, density=False)

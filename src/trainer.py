@@ -12,14 +12,14 @@ from plotter import Plotter
 
 import caloch_eval.evaluate as evaluate
 
-class LogUniform(dist.TransformedDistribution):
+class LogUniform(dist.TransformedDistribution):  # TRansformes Dist.. gère automatiquement la transfo ET le chgment de variable
     def __init__(self, lb, ub):
         super(LogUniform, self).__init__(dist.Uniform(torch.log(lb), torch.log(ub)),
-                                            dist.ExpTransform())
+                                            dist.ExpTransform())  # log uniforme sur les birnes puis exp sur l'échantillon
 class Trainer:
     """ This class is responsible for training and testing the model.  """
 
-    def __init__(self, params, device, doc):
+    def __init__(self, params, device, doc):   
         """
             Initializes train_loader, test_loader, model, optimizer and scheduler.
 
@@ -30,8 +30,8 @@ class Trainer:
         """
 
         self.params = params
-        self.device = device
-        self.doc = doc
+        self.device = device  # CPU, GPU
+        self.doc = doc        # gérer les enregistrements, plots etc
 
         train_loader, test_loader, layer_boundaries = data_util.get_loaders(
             params.get('data_path'),
@@ -48,34 +48,34 @@ class Trainer:
             rew=params.get("pt_rew", 1.0),
             dep_cut=params.get("dep_cut", 1e10),
         )
-        self.train_loader = train_loader
+        self.train_loader = train_loader 
         self.test_loader = test_loader
-        self.layer_boundaries = layer_boundaries
+        self.layer_boundaries = layer_boundaries   # infos spécifiques au dataset 
         self.single_energy = params.get("single_energy", None)
-        self.avg_gen_time = {}
+        self.avg_gen_time = {}    # pour mesurer les temps de génération
 
         self.num_dim = train_loader.data.shape[1]
 
-        data = torch.clone(train_loader.data)
+        data = torch.clone(train_loader.data)  # clone les dinnées pour pas impacter le loader
         #if self.params.get("extra_dim_w_noise", False):
         #    data[:,:-1] = train_loader.add_noise(data[:,:-1])
         #elif self.params.get("extra_dims_w_noise", False):
         #data[:,-4:] = train_loader.add_noise(data[:,-4:])
         #else:
         if params.get("custom_noise"):
-            q = self.eval_quantiles(data)
+            q = self.eval_quantiles(data)   # calcule quantile
             self.q = q
             train_loader.set_quantiles(q)
             test_loader.set_quantiles(q)
-            data = train_loader.add_noise_v2(data)
+            data = train_loader.add_noise_v2(data)  # ajt bruit calibré (grâce aux quantiles)
         else:
             data = data
-            self.q = torch.tensor(self.params.get("width_noise", 1e-7), device=self.device)
+            self.q = torch.tensor(self.params.get("width_noise", 1e-7), device=self.device)  #bruit constant
         cond = torch.clone(train_loader.cond)
 
-        model = CINN(params, data, cond)
+        model = CINN(params, data, cond)  # création du modèle
         self.model = model.to(device)
-        self.set_optimizer(steps_per_epoch=len(train_loader))
+        self.set_optimizer(steps_per_epoch=len(train_loader))   # configure l'optimiseur (gère le lr...)
 
         param_size = 0
         for param in self.model.parameters():
@@ -83,17 +83,17 @@ class Trainer:
         buffer_size = 0
         for buffer in self.model.buffers():
             buffer_size += buffer.nelement() * buffer.element_size()
-        size_all_mb = (param_size + buffer_size) / 1024**2
+        size_all_mb = (param_size + buffer_size) / 1024**2   # pour czlculer la mémoire
         print('model size: {:.3f}MB'.format(size_all_mb))
 
-        self.losses_train = {'inn': [], 'kl': [], 'total': []}
-        self.losses_test = {'inn': [], 'kl': [], 'total': []}
+        self.losses_train = {'inn': [], 'kl': [], 'total': []}  # listes pour stocker les pertes
+        self.losses_test = {'inn': [], 'kl': [], 'total': []}   # au fil des epochs
         self.learning_rates = []
 
     def eval_quantiles(self, data: torch.Tensor) -> torch.Tensor:
         cp = torch.clone(data)
-        cp[cp==0] = torch.nan
-        quantiles = torch.nanquantile(cp, q=0.01, dim=0).reshape(1, -1)
+        cp[cp==0] = torch.nan    # ça met à Nan les 0 : abs d'nrj
+        quantiles = torch.nanquantile(cp, q=0.01, dim=0).reshape(1, -1) # calcule quantile à 1% pr chaque dim
         print(quantiles.shape)
         cp[cp==torch.nan] = 0.0
         return quantiles
@@ -324,7 +324,7 @@ class Trainer:
                     gamma=0.5
                     )
 
-    def save(self, epoch=""):
+    def save(self, epoch=""):  # sauve les poids
         """ Save the model, its optimizer, losses, learning rates and the epoch """
         torch.save({#"opt": self.optim.state_dict(),
                     "net": self.model.state_dict(),
@@ -333,7 +333,7 @@ class Trainer:
                     }#"epoch": self.epoch}
                     , self.doc.get_file(f"model{epoch}.pt"))
 
-    def load(self, epoch=""):
+    def load(self, epoch=""):    # recharge les poids
         """ Load the model, its optimizer, losses, learning rates and the epoch """
         #print("IN LOAD")
         print(f"model{epoch}.pt")
@@ -359,7 +359,7 @@ class Trainer:
         self.model.to(self.device)
 
 	   
-    def generate_Einc_ds1(self, energy=None, sample_multiplier=1000):
+    def generate_Einc_ds1(self, energy=None, sample_multiplier=1000): # génère distrib nrj log-uniforme
         """ generate the incident energy distribution of CaloChallenge ds1 
 			sample_multiplier controls how many samples are generated: 10* sample_multiplier for low energies,
 			and 5, 3, 2, 1 times sample multiplier for the highest energies
@@ -374,7 +374,7 @@ class Trainer:
         np.random.shuffle(ret)
         return ret 
     
-    def generate(self, num_samples, batch_size = 1000):
+    def generate(self, num_samples, batch_size = 1000): # génère de nouvelles données simulées
         """
             generate new data using the modle and storing them to a file in the run folder.
 
@@ -427,7 +427,7 @@ class Trainer:
             )
         return data
 
-    def latent_samples(self, epoch=None):
+    def latent_samples(self, epoch=None): # passe les donnes train dans le modèle pour recup les latents
         """
             Plot latent space distribution. 
 
@@ -450,6 +450,7 @@ class Trainer:
         Run the default evaluation script for a single saved sample
         It runs the full CaloChallenge evaluation pipeline
         """
+
         evaluate.main(f"-i {self.doc.basedir}/{sample_name} -r {self.params['val_data_path']} -m all -d {self.params['eval_dataset']} --output_dir {self.doc.basedir}/eval/{eval_name}/ --cut 0. ".split())#
 
     def plot_uncertaintys(self, plot_params, num_samples=100000, num_rand=30, batch_size = 10000):
@@ -485,7 +486,7 @@ class Trainer:
                     samples,
                     energies,
                     layer_boudaries=self.layer_boundaries,
-                    threshold=params.get("width_noise", 1e-7)
+                    threshold=self.params.get("width_noise", 1e-7)
                 )
             l_plotter.update(data)
         l_plotter.plot()
