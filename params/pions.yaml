@@ -1,4 +1,4 @@
-run_name: pionswonoise_50epochs        # nom du folder qui va save les resultats
+run_name: pions_new_class        # nom du folder qui va save les resultats
 p_type: piplus               # particle type, type de dataset , pion, e...
 dtype: float32               # precision numérique qu'on veut avoir (32 bits)
 # Data
@@ -9,7 +9,7 @@ single_energy: null         # si on veut sélectionner une énergie incidente en
 width_noise: 5.0e-6
 custom_noise: False
 fixed_noise: False
-noise: False  ###True
+noise: True
 val_frac: 0.01
 eps: 1.0e-10             # évite les divisions par 0, ajt des petites valeurs au dénominateur
 xml_ptype: "pion"        # préciser la particule

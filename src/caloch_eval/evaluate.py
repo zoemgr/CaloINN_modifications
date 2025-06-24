@@ -142,31 +142,51 @@ def define_parser():
 
 ########## Functions and Classes ##########
 
-class DNN(torch.nn.Module):
-    """ NN for vanilla classifier. Does not have sigmoid activation in last layer, should
-        be used with torch.nn.BCEWithLogitsLoss()
-    """
-    def __init__(self, num_layer, num_hidden, input_dim, dropout_probability=0.):
-        super(DNN, self).__init__()
+# class DNN(torch.nn.Module):
+#     """ NN for vanilla classifier. Does not have sigmoid activation in last layer, should
+#         be used with torch.nn.BCEWithLogitsLoss()
+#     """
+#     def __init__(self, num_layer, num_hidden, input_dim, dropout_probability=0.):
+#         super(DNN, self).__init__()
 
-        self.dpo = dropout_probability
+#         self.dpo = dropout_probability
 
-        self.inputlayer = torch.nn.Linear(input_dim, num_hidden)
-        self.outputlayer = torch.nn.Linear(num_hidden, 1)
+#         self.inputlayer = torch.nn.Linear(input_dim, num_hidden)
+#         self.outputlayer = torch.nn.Linear(num_hidden, 1)
 
-        all_layers = [self.inputlayer, torch.nn.LeakyReLU(), torch.nn.Dropout(self.dpo)]
-        for _ in range(num_layer):
-            all_layers.append(torch.nn.Linear(num_hidden, num_hidden))
-            all_layers.append(torch.nn.LeakyReLU())
-            all_layers.append(torch.nn.Dropout(self.dpo))
+#         all_layers = [self.inputlayer, torch.nn.LeakyReLU(), torch.nn.Dropout(self.dpo)]
+#         for _ in range(num_layer):
+#             all_layers.append(torch.nn.Linear(num_hidden, num_hidden))
+#             all_layers.append(torch.nn.LeakyReLU())
+#             all_layers.append(torch.nn.Dropout(self.dpo))
 
-        all_layers.append(self.outputlayer)
-        self.layers = torch.nn.Sequential(*all_layers)
+#         all_layers.append(self.outputlayer)
+#         self.layers = torch.nn.Sequential(*all_layers)
+
+#     def forward(self, x):
+#         """ Forward pass through the DNN """
+#         x = self.layers(x)
+#         return x
+
+
+class ColumnClassifier(torch.nn.Module):
+    def __init__(self, input_dim):
+        super().__init__()
+        self.net = torch.nn.Sequential(
+            torch.nn.Linear(input_dim, 1024),
+            torch.nn.ReLU(),
+            torch.nn.Dropout(0.4),
+            torch.nn.Linear(1024, 1024),
+            torch.nn.ReLU(),
+            torch.nn.Dropout(0.4),
+            torch.nn.Linear(1024, 1024),
+            torch.nn.ReLU(),
+            torch.nn.Linear(1024, 2)
+        )
 
     def forward(self, x):
-        """ Forward pass through the DNN """
-        x = self.layers(x)
-        return x
+        return self.net(x)
+    
 
 def prepare_low_data_for_classifier(hdf5_file, hlf_class, label, cut=0.0, normed=False, single_energy=None):
     """ takes hdf5_file, extracts Einc and voxel energies, appends label, returns array """
@@ -767,11 +787,13 @@ def main(raw_args=None):
 
             # set up DNN classifier
             input_dim = train_data.shape[1]-1
-            DNN_kwargs = {'num_layer':args.cls_n_layer,
-                          'num_hidden':args.cls_n_hidden,
-                          'input_dim':input_dim,
-                          'dropout_probability':args.cls_dropout_probability}
-            classifier = DNN(**DNN_kwargs)
+            # DNN_kwargs = {'num_layer':args.cls_n_layer,
+            #               'num_hidden':args.cls_n_hidden,
+            #               'input_dim':input_dim,
+            #               'dropout_probability':args.cls_dropout_probability}
+            # classifier = DNN(**DNN_kwargs)
+
+            classifier = ColumnClassifier(input_dim)
             classifier.to(args.device)
             print(classifier)
             total_parameters = sum(p.numel() for p in classifier.parameters() if p.requires_grad)
