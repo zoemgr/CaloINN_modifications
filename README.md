@@ -12,7 +12,7 @@ The goal of my work was to explore and improve the evaluation strategy of the mo
 
 I trained a new binary classifier to distinguish between Geant4 and CaloINN-generated showers. 
 
-It achieved similar performance with better balance between training and validation performances.
+It achieved similar performance with better balance between training and validation performances than the default one.
 
 ## Interpolation ability
 
