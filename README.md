@@ -1,4 +1,4 @@
-#Introduction
+# Introduction
 
 This repository contains the work I carried during my research internship on CaloINN, a generative model designed to simulate calorimeter showers in high-energy physics. It was introduced in the CaloChallenge https://arxiv.org/pdf/2410.21611 and is described in details here:  https://arxiv.org/pdf/2312.09290 . It’s implementation and installation instructions are available here : https://github.com/heidelberg-hepml/CaloINN.
 The goal of my work was to explore and improve the evaluation strategy of the model, and better understand its generalization abilities.
