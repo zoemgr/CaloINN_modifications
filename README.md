@@ -11,7 +11,8 @@ The goal of my work was to explore and improve the evaluation strategy of the mo
 ## Modified classifier
 
 I trained a new binary classifier to distinguish between Geant4 and CaloINN-generated showers. 
-It achieved similar performance with better balance between training and validation performances. 
+
+It achieved similar performance with better balance between training and validation performances.
 
 ## Interpolation ability
 
@@ -19,8 +20,8 @@ Link to the slides : https://docs.google.com/presentation/d/1jx-MW-ouCg9Mh47UmSE
 
 I studied how well CaloINN interpolates to incident energies it has not seen during training by removing all events from one specific energy from the training set and test the model on these events. (Slide 20-21)
 
-I first retrained CaloINN on a dataset without any 16 GeV events. (Slides 22, 23).
-Then I did the same thing for both 512 2MeV events (Slides 24, 25, 26) and 2 TeV events (Slides 27, 28).
+I first retrained CaloINN on a dataset without any 16 GeV events and had good interpolation from the model. (Slides 22, 23).
+Then I did the same thing for both 512 2MeV events (Slides 24, 25, 26) and 2 TeV events (Slides 27, 28). I saw that low-energy showers are harder to reconstruct due to their level of complexity. High-energy events are easier to reconstruct but can be tricky due to the small number of events.
 Also I did two supplementary checks (Slide 29) :
 -	Retrain the classifier on a dataset where the number of 16 GeV events is reduced to match the number of 2 TeV events.
 -	Retrain the classifier on the whole dataset and test it only for 2 TeV events
