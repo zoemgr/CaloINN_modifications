@@ -7,7 +7,9 @@ The official implementation and installation instructionsis are available here: 
 
 The goal of this project was to improve and better understand the **evaluation procedure** of the model and assess its **generalization ability** to new energies.
 
-![Example of a hadronic shower](images/single_had_shower.png)
+| ![Example of a hadronic shower](images/single_had_shower.png) |
+|:--:|
+| *Figure 1: Example of a hadronic shower.* |
 
 ---
 
