@@ -29,7 +29,8 @@ However, in practice, one might want to generate showers at intermediate energie
 To test this, I removed all events at a given energy from the training set, and evaluated the model’s performance on that specific energy (Slide 20-21).
 
 I explored three cases:
-- **Medium energy (16 GeV)**: good interpolation both in AUC and χ² metrics  chi-squared (Slides 22, 23)
+- **Medium energy (16 GeV)**: good interpolation both in AUC and χ² metrics 
+{\displaystyle \chi ^{2}} (Slides 22, 23)
 - **Low energy (512 MeV)**: interpolation was acceptable, but performance was limited due to the high complexity and variability of low-energy showers (Slides 24, 25, 26) 
 - **High energy (2 TeV)**: good results at first sight, but I found they were biased due to the very small number of examples, making it hard for the classifier to learn (Slides 27, 28)
 
