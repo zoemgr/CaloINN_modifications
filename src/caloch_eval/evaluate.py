@@ -54,7 +54,7 @@ from sklearn.isotonic import IsotonicRegression
 import caloch_eval.HighLevelFeatures as HLF
 from caloch_eval.evaluate_plotting_helper import *
 
-# for evaluation only
+# # for evaluation only
 # import HighLevelFeatures as HLF
 # from evaluate_plotting_helper import *
 
@@ -142,7 +142,7 @@ def define_parser():
 
 ########## Functions and Classes ##########
 
-# class DNN(torch.nn.Module):
+# class DNN_og(torch.nn.Module):
 #     """ NN for vanilla classifier. Does not have sigmoid activation in last layer, should
 #         be used with torch.nn.BCEWithLogitsLoss()
 #     """
@@ -168,8 +168,7 @@ def define_parser():
 #         x = self.layers(x)
 #         return x
 
-
-class ColumnClassifier(torch.nn.Module):
+class DNN(torch.nn.Module):
     def __init__(self, input_dim):
         super().__init__()
         self.net = torch.nn.Sequential(
@@ -181,12 +180,13 @@ class ColumnClassifier(torch.nn.Module):
             torch.nn.Dropout(0.4),
             torch.nn.Linear(1024, 1024),
             torch.nn.ReLU(),
-            torch.nn.Linear(1024, 2)
+            torch.nn.Linear(1024, 1),
+            torch.nn.Sigmoid()
         )
 
     def forward(self, x):
         return self.net(x)
-    
+
 
 def prepare_low_data_for_classifier(hdf5_file, hlf_class, label, cut=0.0, normed=False, single_energy=None):
     """ takes hdf5_file, extracts Einc and voxel energies, appends label, returns array """
@@ -792,8 +792,8 @@ def main(raw_args=None):
             #               'input_dim':input_dim,
             #               'dropout_probability':args.cls_dropout_probability}
             # classifier = DNN(**DNN_kwargs)
+            classifier = DNN(input_dim)
 
-            classifier = ColumnClassifier(input_dim)
             classifier.to(args.device)
             print(classifier)
             total_parameters = sum(p.numel() for p in classifier.parameters() if p.requires_grad)
