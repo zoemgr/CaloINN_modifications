@@ -44,4 +44,6 @@ To confirm this last point, I ran two control checks (Slide 29) :
 
 These tests supported the idea that the original AUC score at 2 TeV was not reliable, as the classifier had too little information to learn effectively.
 
-![Showers of different energies](images/exemple_showeres.png)
+| ![Grid ratio energy](images/single_had_shower.png) |
+|:--:|
+| *Figure 2: Ratio of the total deposited energy and the incident energy for each incident energy value of the dataset.* |
