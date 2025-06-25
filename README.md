@@ -7,6 +7,8 @@ The official implementation and installation instructionsis are available here: 
 
 The goal of this project was to improve and better understand the **evaluation procedure** of the model and assess its **generalization ability** to new energies.
 
+![Example of a hadronic shower](images/single_had_shower.png)
+
 ---
 
 ## First task : Modified classifier
@@ -28,7 +30,6 @@ However, in practice, one might want to generate showers at intermediate energie
 
 To test this, I removed all events at a given energy from the training set, and evaluated the model’s performance on that specific energy (Slides 20-21).
 
-![Hadronic showers for different energies](images/exemple_showeres.png)
 
 I explored three cases:
 - **Medium energy (16 GeV)**: good interpolation both in AUC and chi-squared distance metrics (Slides 22, 23)
