@@ -14,7 +14,7 @@ The goal of this project was to improve and better understand the **evaluation s
 I trained a new binary classifier to distinguish between Geant4 and CaloINN-generated showers.
 
 The original classifier was designed to work across the entire dataset, including the most complex examples, while my experiments focused on the simplest one.  
-I therefore trained a classifier better suited to this dataset, which reached a similar AUC but maintained a more consistent performance between the training and validation sets — unlike the default classifier, which tended to overfit.
+I therefore trained a classifier better suited to this dataset, which reached a similar AUC but maintained a more consistent performance between the training and validation sets (unlike the default classifier, which tended to overfit).
 
 
 ---
@@ -29,14 +29,13 @@ However, in practice, one might want to generate showers at intermediate energie
 To test this, I removed all events at a given energy from the training set, and evaluated the model’s performance on that specific energy (Slide 20-21).
 
 I explored three cases:
-- **Medium energy (16 GeV)**: good interpolation both in AUC and χ² metrics 
-{\displaystyle \chi ^{2}} (Slides 22, 23)
+- **Medium energy (16 GeV)**: good interpolation both in A.U.C. and chi-squared distance metrics (Slides 22, 23)
 - **Low energy (512 MeV)**: interpolation was acceptable, but performance was limited due to the high complexity and variability of low-energy showers (Slides 24, 25, 26) 
 - **High energy (2 TeV)**: good results at first sight, but I found they were biased due to the very small number of examples, making it hard for the classifier to learn (Slides 27, 28)
 
 To confirm this last point, I ran two control checks (Slide 29) :
 - I trained a classifier on a dataset where the number of 16 GeV events was artificially reduced to match the number of 2 TeV events -> AUC dropped similarly  
-- I trained a classifier on the full dataset but evaluated it only on 2 TeV → higher AUC, confirming that more training samples improve learning
+- I trained a classifier on the full dataset but evaluated it only on 2 TeV -> higher AUC, confirming that more training samples improve learning
 
 These tests supported the idea that the original AUC score at 2 TeV was not reliable, as the classifier had too little information to learn effectively.
 
