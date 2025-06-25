@@ -1,4 +1,4 @@
-run_name: pions_new_class        # nom du folder qui va save les resultats
+run_name: pions_new_class_17epohc        # nom du folder qui va save les resultats
 p_type: piplus               # particle type, type de dataset , pion, e...
 dtype: float32               # precision numérique qu'on veut avoir (32 bits)
 # Data
@@ -28,7 +28,7 @@ lr_scheduler: one_cycle_lr
 
 weight_decay: 0.01         # régularisation, pénalise les grands poids pour éviter overfitting
 betas: [0.9, 0.999]        # param internes de Adam, controlent la mémoire de l'optimiseur
-n_epochs: 50
+n_epochs: 17
 cycle_epochs: 37
 save_interval: 50
 
